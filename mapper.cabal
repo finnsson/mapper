@@ -1,0 +1,46 @@
+name: mapper
+version: 0.1.0
+cabal-version: -any
+build-type: Simple
+license: BSD4
+license-file: ""
+copyright:
+maintainer: Oscar Finnsson
+build-depends: base -any
+stability:
+homepage:
+package-url:
+bug-reports:
+synopsis:
+description: Map data to/from hack-webserver to haskell-functions or db-layer.
+category:
+author: Oscar Finnsson
+tested-with:
+data-files:
+data-dir: ""
+extra-source-files:
+extra-tmp-files:
+exposed-modules: Web.Hack.Mapper
+exposed: True
+buildable: True
+build-tools:
+cpp-options:
+cc-options:
+ld-options:
+pkgconfig-depends:
+frameworks:
+c-sources:
+extensions:
+extra-libraries:
+extra-lib-dirs:
+includes:
+install-includes:
+include-dirs:
+hs-source-dirs: src
+other-modules:
+ghc-prof-options:
+ghc-shared-options:
+ghc-options:
+hugs-options:
+nhc98-options:
+jhc-options:
