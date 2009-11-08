@@ -29,19 +29,24 @@ import Data.Char
 import qualified Hack
 import Maybe
 import Network.URI (unEscapeString)
+import qualified Data.ByteString.Lazy as L
+import Codec.Binary.UTF8.String (decode)
 
 
 envParser :: Hack.Env -> MapperInput
 envParser env =
   let parsedPath = parse pathParser "url" (unEscapeString $ Hack.pathInfo env)
-      parsedQuery = parse queryParser "query" (unEscapeString $ Hack.queryString env)
+      parsedQuery =
+        if Hack.hackInput env == L.empty
+        then parse queryParser "query" (unEscapeString $ Hack.queryString env)
+        else parse queryParser "input" (decode $ L.unpack $ Hack.hackInput env)
   in case parsedPath of
       Right Nothing -> MapperInputEmpty
       Right val -> 
         case parsedQuery of
           Right q -> MapperInput (fromEnvVerb $ Hack.requestMethod env) (fst $ fromJust val) q (snd $ fromJust val)
-          Left qErr -> MapperInputError
-      Left err -> MapperInputError
+          Left qErr -> MapperInputError $ show qErr
+      Left err -> MapperInputError $ show err
 
 pathParser :: GenParser Char st (Maybe(String, [(String, String)]))
 pathParser = do 
@@ -105,4 +110,3 @@ fromEnvVerb Hack.POST = Create
 fromEnvVerb Hack.DELETE = Delete
 fromEnvVerb Hack.HEAD = Info
 
--- Data.ByteString.Lazy

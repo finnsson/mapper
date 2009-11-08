@@ -8,6 +8,7 @@ import qualified Web.Hack.MapperRestful as M
 import qualified Data.ByteString.Lazy as L
 import System.IO
 import Text.ParserCombinators.Parsec
+import Codec.Binary.UTF8.String (encode)
 
 import TestGenerator
 
@@ -58,14 +59,14 @@ testEnvParserWithInput =
      expected @=? actual
 
 testEnvParserErrorInPath =
-  do let expected = MapperInputError
+  do let expected = True -- MapperInputError "foo"
          actual = M.envParser envFixtureGet{pathInfo="apa"}
-     expected @=? actual
+     expected @=? (isInputError $ actual)
 
 testEnvParserErrorInQuery =
-  do let expected = MapperInputError
+  do let expected = True -- MapperInputError "foo"
          actual = M.envParser envFixtureGet{pathInfo="/apa", queryString="47"}
-     expected @=? actual
+     expected @=? (isInputError $ actual)
 
 testEnvParserRoot =
   do let expected = MapperInputEmpty
@@ -77,10 +78,17 @@ testEnvParserEscaping =
          actual = M.envParser envFixtureGet{pathInfo="/sven&nyckel=%22cykel%22", queryString="nyckel=%22cykel%22"}
      expected @=? actual
 
+testEnvParserPostData =
+  do let expected = MapperInput Read "sven" [("nyckel", "cykel")] [("nyckel", "cykel")]
+         actual = 
+          M.envParser envFixtureGet{
+            pathInfo="/sven&nyckel=%22cykel%22", 
+            hackInput= L.pack $ Codec.Binary.UTF8.String.encode "nyckel=\"cykel\""}
+     expected @=? actual
 
 
-
-
+isInputError (MapperInputError _) = True
+isInputError _ = False
 
 testPathParser =
   do let expected = Just $ Just ("apa", [("key1", "value1"), ("key2", "value2")])

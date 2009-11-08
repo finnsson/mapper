@@ -24,7 +24,7 @@ data MapperInput =
     mapperInputValue :: [(String,String)], -- key/value-pairs
     mapperInputFilter :: [(String,String)] -- key/value-pairs
   }
-  | MapperInputEmpty | MapperInputError 
+  | MapperInputEmpty | MapperInputError { mapperInputError :: String }
   deriving (Show,Eq)
   
 data MapperVerb =
