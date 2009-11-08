@@ -42,17 +42,93 @@ envFixtureGet = Env {
 }
 
 
-testResourceParserSlashApa =
-  do let expected = "apa" -- Right "apa" :: Either ParseError String
-         actual = parseApa "/apa"
+testEnvParserSlashApa =
+  do let expected = MapperInput Read "apa" [] [("key1", "value1"), ("key2", "value2")]
+         actual = M.envParser envFixtureGet{pathInfo="/apa&key1=\"value1\"&key2=\"value2\""}
      expected @=? actual
 
-testResourceParserApa =
-  do let expected = "err" -- Right "apa" :: Either ParseError String
-         actual = parseApa "apa"
+testEnvParserSlashApaNoKeyValues =
+  do let expected = MapperInput Read "apa" [] []
+         actual = M.envParser envFixtureGet{pathInfo="/apa"}
      expected @=? actual
 
-parseApa v =
-  case parse M.resourceParser "test" v of
-    Right val -> val
-    Left err -> "err"
+testEnvParserWithInput =
+  do let expected = MapperInput Read "apa2" [("key1","3&/%#"),("k_e4","()()??=")] []
+         actual = M.envParser envFixtureGet{pathInfo="/apa2", queryString="key1=\"3&/%#\"&k_e4=\"()()??=\""}
+     expected @=? actual
+
+testEnvParserErrorInPath =
+  do let expected = MapperInputError
+         actual = M.envParser envFixtureGet{pathInfo="apa"}
+     expected @=? actual
+
+testEnvParserErrorInQuery =
+  do let expected = MapperInputError
+         actual = M.envParser envFixtureGet{pathInfo="/apa", queryString="47"}
+     expected @=? actual
+
+testEnvParserRoot =
+  do let expected = MapperInputEmpty
+         actual = M.envParser envFixtureGet{pathInfo="/"}
+     expected @=? actual
+
+testEnvParserEscaping =
+  do let expected = MapperInput Read "sven" [("nyckel", "cykel")] [("nyckel", "cykel")]
+         actual = M.envParser envFixtureGet{pathInfo="/sven&nyckel=%22cykel%22", queryString="nyckel=%22cykel%22"}
+     expected @=? actual
+
+
+
+
+
+
+testPathParser =
+  do let expected = Just $ Just ("apa", [("key1", "value1"), ("key2", "value2")])
+         actual = parser M.pathParser "/apa&key1=\"value1\"&key2=\"value2\""
+     expected @=? actual
+
+testPathParserForEmptyPath =
+  do let expected = Nothing
+         actual = parser M.pathParser ""
+     expected @=? actual
+
+testQueryParser =
+  do let expected = Just [("key1", "value1"), ("key2", "value2")]
+         actual = parser M.queryParser "key1=\"value1\"&key2=\"value2\""
+     expected @=? actual
+
+testQueryParserForEmptyQuery =
+  do let expected = Just []
+         actual = parser M.queryParser ""
+     expected @=? actual
+
+
+testKeyValue =
+  do let expected = Just ("key","value")
+         actual = parser M.keyValue "key=\"value\""
+     expected @=? actual
+     
+testAndKeyValue =
+  do let expected = Just ("key","value")
+         actual = parser M.andKeyValue "&key=\"value\""
+     expected @=? actual
+     
+testFilter =
+  do let expected = Just [("key1","value1")]
+         actual = parser M.manyKeyValues "&key1=\"value1\""
+     expected @=? actual
+
+testFilterVerbose =
+  do let expected = (Right [("key1","value1")]) :: Either ParseError [(String,String)]
+         actual = parse M.manyKeyValues "test" "&key1=\"value1\""
+     show expected @=? show actual
+
+testMultiFilter =
+  do let expected = Just [("key1","value1"),("key2","value2")]
+         actual = parser M.manyKeyValues "&key1=\"value1\"&key2=\"value2\""
+     expected @=? actual
+
+parser f v =
+  case parse f "test" v of
+    Right val -> Just val
+    Left err -> Nothing
