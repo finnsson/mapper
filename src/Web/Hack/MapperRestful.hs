@@ -31,7 +31,12 @@ import Maybe
 import Network.URI (unEscapeString)
 import qualified Data.ByteString.Lazy as L
 import Codec.Binary.UTF8.String (decode)
+import Web.Hack.Util
 
+instance MapperInputter EnvParser where  
+  getMapperInput (EnvParser) = envParser
+
+data EnvParser = EnvParser
 
 envParser :: Hack.Env -> MapperInput
 envParser env =
@@ -44,19 +49,21 @@ envParser env =
       Right Nothing -> MapperInputEmpty
       Right val -> 
         case parsedQuery of
-          Right q -> MapperInput (fromEnvVerb $ Hack.requestMethod env) (fst $ fromJust val) q (snd $ fromJust val)
+          Right q -> MapperInputData $ DataInput (fromEnvVerb $ Hack.requestMethod env) (fst3 $ fromJust val) (snd3 $ fromJust val) q (trd3 $ fromJust val)
           Left qErr -> MapperInputError $ show qErr
       Left err -> MapperInputError $ show err
 
-pathParser :: GenParser Char st (Maybe(String, [(String, String)]))
+pathParser :: GenParser Char st (Maybe(String, String, [(String, String)]))
 pathParser = do 
   char '/'
   optionMaybe pathParser'
   where
     pathParser' = do
+      namespaceName <- symbol
+      char '/'
       resourceName <- symbol
       filters <- manyKeyValues
-      return $ (resourceName, filters)
+      return (namespaceName, resourceName, filters)
 
 queryParser :: GenParser Char st [(String, String)]
 queryParser = do
@@ -73,10 +80,6 @@ queryParser = do
           first <- keyValue
           rest <- manyKeyValues
           return $ first : rest
-
-
-
-
 
 manyKeyValues :: GenParser Char st [(String,String)]
 manyKeyValues = many andKeyValue

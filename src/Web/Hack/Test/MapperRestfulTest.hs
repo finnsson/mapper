@@ -11,6 +11,8 @@ import Text.ParserCombinators.Parsec
 import Codec.Binary.UTF8.String (encode)
 
 import TestGenerator
+import Web.Hack.MiscUtils
+import Web.Hack.Util
 
 import Test.HUnit
 import Language.Haskell.TH
@@ -42,20 +44,21 @@ envFixtureGet = Env {
   , hackCache = []
 }
 
+readApa = MapperInputData .^.. (DataInput Read "monkey_business" "apa")
 
 testEnvParserSlashApa =
-  do let expected = MapperInput Read "apa" [] [("key1", "value1"), ("key2", "value2")]
-         actual = M.envParser envFixtureGet{pathInfo="/apa&key1=\"value1\"&key2=\"value2\""}
+  do let expected = readApa [] [("key1", "value1"), ("key2", "value2")]
+         actual = M.envParser envFixtureGet{pathInfo="/monkey_business/apa&key1=\"value1\"&key2=\"value2\""}
      expected @=? actual
 
 testEnvParserSlashApaNoKeyValues =
-  do let expected = MapperInput Read "apa" [] []
-         actual = M.envParser envFixtureGet{pathInfo="/apa"}
+  do let expected = readApa [] []
+         actual = M.envParser envFixtureGet{pathInfo="/monkey_business/apa"}
      expected @=? actual
 
 testEnvParserWithInput =
-  do let expected = MapperInput Read "apa2" [("key1","3&/%#"),("k_e4","()()??=")] []
-         actual = M.envParser envFixtureGet{pathInfo="/apa2", queryString="key1=\"3&/%#\"&k_e4=\"()()??=\""}
+  do let expected = readApa [("key1","3&/%#"),("k_e4","()()??=")] []
+         actual = M.envParser envFixtureGet{pathInfo="/monkey_business/apa", queryString="key1=\"3&/%#\"&k_e4=\"()()??=\""}
      expected @=? actual
 
 testEnvParserErrorInPath =
@@ -65,7 +68,7 @@ testEnvParserErrorInPath =
 
 testEnvParserErrorInQuery =
   do let expected = True -- MapperInputError "foo"
-         actual = M.envParser envFixtureGet{pathInfo="/apa", queryString="47"}
+         actual = M.envParser envFixtureGet{pathInfo="/monkey_business/apa", queryString="47"}
      expected @=? (isInputError $ actual)
 
 testEnvParserRoot =
@@ -74,15 +77,15 @@ testEnvParserRoot =
      expected @=? actual
 
 testEnvParserEscaping =
-  do let expected = MapperInput Read "sven" [("nyckel", "cykel")] [("nyckel", "cykel")]
-         actual = M.envParser envFixtureGet{pathInfo="/sven&nyckel=%22cykel%22", queryString="nyckel=%22cykel%22"}
+  do let expected = readApa [("nyckel", "cykel")] [("nyckel", "cykel")]
+         actual = M.envParser envFixtureGet{pathInfo="/monkey_business/apa&nyckel=%22cykel%22", queryString="nyckel=%22cykel%22"}
      expected @=? actual
 
 testEnvParserPostData =
-  do let expected = MapperInput Read "sven" [("nyckel", "cykel")] [("nyckel", "cykel")]
+  do let expected = readApa [("nyckel", "cykel")] [("nyckel", "cykel")]
          actual = 
           M.envParser envFixtureGet{
-            pathInfo="/sven&nyckel=%22cykel%22", 
+            pathInfo="/monkey_business/apa&nyckel=%22cykel%22", 
             hackInput= L.pack $ Codec.Binary.UTF8.String.encode "nyckel=\"cykel\""}
      expected @=? actual
 
@@ -91,8 +94,8 @@ isInputError (MapperInputError _) = True
 isInputError _ = False
 
 testPathParser =
-  do let expected = Just $ Just ("apa", [("key1", "value1"), ("key2", "value2")])
-         actual = parser M.pathParser "/apa&key1=\"value1\"&key2=\"value2\""
+  do let expected = Just $ Just ("monkey_business", "apa", [("key1", "value1"), ("key2", "value2")])
+         actual = parser M.pathParser "/monkey_business/apa&key1=\"value1\"&key2=\"value2\""
      expected @=? actual
 
 testPathParserForEmptyPath =
