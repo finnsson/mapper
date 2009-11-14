@@ -19,10 +19,17 @@ import Data.Generics
 -- | Data from Hack-derivative (e.g. restful or json-rpc).
 data MapperInput =
   MapperInput {
+    mapperInputVerb :: MapperVerb,
     mapperInputName :: String, -- full name, including namespace
-    mapperInputValue :: [(String,DataBox)], -- key/value-pairs
+    mapperInputValue :: [(String,String)], -- key/value-pairs
     mapperInputFilter :: [(String,String)] -- key/value-pairs
   }
+  | MapperInputEmpty | MapperInputError { mapperInputError :: String }
+  deriving (Show,Eq)
+  
+data MapperVerb =
+  Create | Read | Update | Delete | Info
+  deriving (Show, Eq)
 
 -- | Data from mapped functionality (e.g. haskell-function or db-layer).
 data MapperOutput =
@@ -30,7 +37,8 @@ data MapperOutput =
   | MapperOutputError { mapperOutputErrorMessage :: String }
   | MapperOutputNotFound
  
-data DataBox = forall d. (Data d) => DataBox d
+data DataBox = forall d. (Data d, Show d, Eq d) => DataBox d
+ -- deriving (Show,Eq)
 
 class MapperOutputter a where
   getMapperOutput :: a -> MapperInput -> MapperOutput

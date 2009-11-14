@@ -3,3 +3,5 @@ dist
 *.hi
 .DS_Store
 *.o
+*.manifest
+*.exe
