@@ -15,8 +15,11 @@
 module Web.Hack.FunctionMapper (
   functionMapper,
   FunctionMapper (..),
-  parsedModule
+  parsedModule,
+  getFunctions2
 ) where
+
+-- check out http://www.haskell.org/haskellwiki/GHC/As_a_library_(up_to_6.8)#Interactive_evaluation
 
 import Web.Hack.Mapper
 
@@ -27,6 +30,9 @@ import Language.Haskell.Exts -- .Parser
 -- import Language.Haskell.Exts.Extension
 import List
 import Maybe
+import GHC (GhcMonad, getModuleInfo, mkModule, modInfoExports, modInfoLookupName, TyThing (..), PackageId (..), getSessionDynFlags, setSessionDynFlags )
+import Module (mkModuleName, stringToPackageId)
+import HscTypes (Ghc (..))
 
 -- | Takes list of namespaces/modules to map.
 --   Generates as 'data FunctionMapper' that is
@@ -90,7 +96,23 @@ getFunctionMapperOutput dfs mapperInput =
   where df = find (\f -> fst f == mapperInputName mapperInput) dfs
 
 
+getFunctions2 :: String -> String -> Ghc [Maybe TyThing] -- GhcMonad m => String -> String -> m [Maybe TyThing]
+getFunctions2 name namespace =
+  do let mods = mkModule (stringToPackageId name) (mkModuleName namespace)
+     dynFlags <- getSessionDynFlags
+     packageIds <- setSessionDynFlags dynFlags
+     -- mods <- return $ mkModule (find (== name) packageIds) (mkModuleName namespace)
+     moduleInfo <- getModuleInfo mods
+     res <- if isNothing moduleInfo
+            then return $ []
+            else do exports <- return $ modInfoExports $ fromJust moduleInfo
+                    mapM (modInfoLookupName (fromJust moduleInfo)) exports
+     return res
+  
+
 -- http://www.haskell.org/ghc/docs/latest/html/libraries/template-haskell/Language-Haskell-TH.html
 -- http://www.haskell.org/bz/th3.htm
 -- http://www.haskell.org/th/
-  
+-- http://www.haskell.org/haskellwiki/GHC/As_a_library 
+--
+-- -- http://www.haskell.org/ghc/docs/latest/html/libraries/ghc/GHC.html#t%3AType
