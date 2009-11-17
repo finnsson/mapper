@@ -1,5 +1,5 @@
 {-# OPTIONS_GHC -fglasgow-exts -XTemplateHaskell #-}
-module Web.Hack.Test.RuntimeDbMapper where
+module Web.Hack.Test.RuntimeDbMapperTest where
 
 import Test.Framework (defaultMain, testGroup)
 import Test.Framework.Providers.HUnit
@@ -19,8 +19,9 @@ import Web.Hack.RuntimeDbMapper
 import Web.Hack.Mapper
 import Web.Hack.Util
 
-main = $defaultMainGenerator 
+main = defaultMain [runtimeDbMapperTests] 
 
+runtimeDbMapperTests = $testGroupGenerator
 
 -- Fixtures
 name = "foo"

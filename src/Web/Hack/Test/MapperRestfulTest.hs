@@ -1,6 +1,6 @@
 
 {-# OPTIONS_GHC -fglasgow-exts -XTemplateHaskell #-}
-module Web.Hack.MapperRestfulTest where 
+module Web.Hack.Test.MapperRestfulTest where 
 
 import Hack
 import Web.Hack.Mapper
@@ -15,9 +15,13 @@ import Web.Hack.MiscUtils
 import Web.Hack.Util
 
 import Test.HUnit
+import Test.Framework (defaultMain)
+
 import Language.Haskell.TH
 
-main = $defaultMainGenerator
+main = defaultMain [mapperRestfulTests]
+
+mapperRestfulTests = $testGroupGenerator
 
 envFixtureGet = Env {
   requestMethod = GET
