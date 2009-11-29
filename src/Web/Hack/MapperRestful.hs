@@ -15,8 +15,8 @@
 -----------------------------------------------------------------------------
 
 module Web.Hack.MapperRestful (
+  EnvParser (..),
   envParser,
-  pathParser,
   queryParser,
   keyValue,
   manyKeyValues,
@@ -32,54 +32,83 @@ import Network.URI (unEscapeString)
 import qualified Data.ByteString.Lazy as L
 import Codec.Binary.UTF8.String (decode)
 import Web.Hack.Util
+import Text.ParserCombinators.Parsec.Error
 
 instance MapperInputter EnvParser where  
-  getMapperInput (EnvParser) = envParser
+  getMapperInput = envParser
 
-data EnvParser = EnvParser
+data EnvParser =
+  EnvParser {
+    viewNSs :: [String],
+    functionNSs :: [String],
+    metaSymbol :: String
+  }
 
-envParser :: Hack.Env -> MapperInput
-envParser env =
-  let parsedPath = parse pathParser "url" (unEscapeString $ Hack.pathInfo env)
-      parsedQuery =
-        if Hack.hackInput env == L.empty
-        then parse queryParser "query" (unEscapeString $ Hack.queryString env)
-        else parse queryParser "input" (decode $ L.unpack $ Hack.hackInput env)
-  in case parsedPath of
-      Right Nothing -> MapperInputEmpty
-      Right val -> 
-        case parsedQuery of
-          Right q -> MapperInputData $ DataInput (fromEnvVerb $ Hack.requestMethod env) (fst3 $ fromJust val) (snd3 $ fromJust val) q (trd3 $ fromJust val)
-          Left qErr -> MapperInputError $ show qErr
-      Left err -> MapperInputError $ show err
 
-pathParser :: GenParser Char st (Maybe(String, String, [(String, String)]))
-pathParser = do 
+envParser :: EnvParser -> Hack.Env -> MapperInput
+envParser config env =
+  case parsed' of
+    Right v -> v
+    Left err -> MapperInputError "Parse error" -- $ foldr (++) "" $ map messageString $ errorMessages err
+  where parsed' = parse (envParser' config) "url" url
+        url = (unEscapeString $ Hack.pathInfo env) ++ "?" ++
+                (decode $ L.unpack $ Hack.hackInput env) ++ (Hack.queryString env)
+
+
+envParser' config = do
+  meta' <- maybeMeta config
+  namespace' <- namespaceParser config
+  resource' <- resourceParser config
+  query' <- try $ queryParser config
+  return $ MapperInputData $
+    dataInput {
+      dataInputMeta = meta',
+      dataInputNS = namespace',
+      dataInputName = fst resource',
+      dataInputFilter = snd resource',
+      dataInputValue = query'
+    }
+
+maybeMeta ::EnvParser -> GenParser Char st Bool 
+maybeMeta config =
+  try (metaParse config) <|> (return $ False)
+
+metaParse config = do
+  string $ "/" ++ metaSymbol config
+  return $ True 
+
+
+namespaceParser :: EnvParser -> GenParser Char st String
+namespaceParser config = do
   char '/'
-  optionMaybe pathParser'
-  where
-    pathParser' = do
-      namespaceName <- symbol
-      char '/'
-      resourceName <- symbol
-      filters <- manyKeyValues
-      return (namespaceName, resourceName, filters)
+  ns <- symbol <?> "namespace"
+  let isNs =
+        if elem ns (viewNSs config)
+        then return $ ns
+        else fail ns
+  isNs
 
-queryParser :: GenParser Char st [(String, String)]
-queryParser = do
-  values <- valuesParser
-  return $ stripMaybe values
+
+resourceParser :: EnvParser -> GenParser Char st (String,[(String,String)]) 
+resourceParser config = do
+  char '/'
+  resourceName <- symbol
+  filters <- manyKeyValues
+  return $ (resourceName, filters)
+
+queryParser :: EnvParser -> GenParser Char st [(String, String)]
+queryParser config = do
+  char '?'
+  values <- optionMaybe valuesParser'
+  return $ stripMaybe values 
   where
     stripMaybe (Just a) = a
     stripMaybe Nothing = []
 
-    valuesParser :: GenParser Char st (Maybe [(String, String)])
-    valuesParser = optionMaybe valuesParser' 
-      where
-        valuesParser' = do 
-          first <- keyValue
-          rest <- manyKeyValues
-          return $ first : rest
+    valuesParser' = do 
+      first <- keyValue
+      rest <- manyKeyValues
+      return $ first : rest
 
 manyKeyValues :: GenParser Char st [(String,String)]
 manyKeyValues = many andKeyValue
@@ -102,14 +131,20 @@ keyValue = do
     valueParser = many1 (satisfy (/= '"'))
   
 symbol :: CharParser st String
-symbol = many1 ( satisfy isId )
-  where
-    isId :: Char -> Bool
-    isId c = isAlphaNum c || c == '_'
+symbol = many1 ( satisfy (isAlphaNum ||* (== '_')) )
 
-fromEnvVerb Hack.GET = Read
-fromEnvVerb Hack.PUT = Update
-fromEnvVerb Hack.POST = Create
-fromEnvVerb Hack.DELETE = Delete
-fromEnvVerb Hack.HEAD = Info
+inList :: [String] -> String -> CharParser st String
+inList list s = do
+  let elemOf =
+        if elem s list
+        then return $ s
+        else fail s
+  elemOf
 
+fromEnvVerb verb =
+  case verb of
+    Hack.GET -> Read
+    Hack.PUT -> Update
+    Hack.POST -> Create
+    Hack.DELETE -> Delete
+    Hack.HEAD -> Info

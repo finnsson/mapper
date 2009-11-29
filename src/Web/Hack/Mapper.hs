@@ -19,17 +19,23 @@ import Hack
 
 -- | Data from Hack-derivative (e.g. restful or json-rpc).
 data MapperInput =
-  MapperInputData DataInput | MapperInputEmpty | MapperInputError { mapperInputError :: String }
+  MapperInputData DataInput 
+  -- | MapperInputEmpty 
+  | MapperInputError { mapperInputError :: String }
   deriving (Show,Eq)
   
 data DataInput = DataInput {
     dataInputVerb :: MapperVerb,
+    dataInputMeta :: Bool,
     dataInputNS :: String, -- namespace
     dataInputName :: String, -- full name
     dataInputValue :: [(String,String)], -- key/value-pairs
     dataInputFilter :: [(String,String)] -- key/value-pairs
   }
   deriving (Show, Eq)
+
+dataInput = DataInput Read False "" "" [] []
+
 
 data MapperVerb =
   Create | Read | Update | Delete | Info
@@ -39,7 +45,6 @@ data MapperVerb =
 data MapperOutput =
   MapperOutput { mapperOutputData :: [[(String,String)]] } -- DataBox }
   | MapperOutputError { mapperOutputErrorMessage :: String }
-  | MapperOutputNotFound
   deriving (Show, Eq)
  
 data DataBox = forall d. (Data d, Show d, Eq d) => DataBox d
@@ -50,16 +55,3 @@ class MapperOutputter a where
 
 class MapperInputter a where
   getMapperInput :: a -> Hack.Env -> MapperInput
-
--- restful :: MapperInputter m => m
--- restful = SomeRestful
--- functions :: MapperOutputter m => m
--- functions = $(functionMapper ["Web.Hack.Foo", "Web.Hack.Bar"])
--- functions (getMapperInput restful)
-
--- Web.Hack.FunctionMapper (functionMapperCall)
--- Web.Hack.RuntimeDbMapper (dbMapperCall)
--- Web.Hack.Mapper (MapperInput / MapperOutput)
--- Web.Hack.MapperRestful (getRestfulMapperInput)
--- Web.Hack.MapperJsonRpc (getJsonRpcMapperInput)
-

@@ -109,9 +109,9 @@ query' sql cs callData =
                       ++ map ( sqlInjectionProtection . fst) ( dataInputValue callData )
             paramsWhere = surrounds $ dataInputFilter callData
             paramsValue = surrounds $ dataInputValue callData
-            name = (surround $ dataInputNS callData ) 
+            name = surround ( dataInputNS callData ) 
                     ++ "." 
-                    ++ (surround $ dataInputName callData)
+                    ++ surround ( dataInputName callData)
 
 quickQueryALsafe conn sql sqlParams = catchSql (quickQueryAL conn sql sqlParams) (\e -> return [[("error", SqlString "sql error")]])
 
@@ -127,14 +127,14 @@ selectSql name whereParams =
 
 insertSql :: String -> KVs -> String
 insertSql name params =
-  "insert into " ++ name ++ "(" ++  ( foldr1With "," $ map fst params) ++ ")"
-    ++ " values(" ++ ( foldr1With "," $ map snd params ) ++ ")"
+  "insert into " ++ name ++ "(" ++   foldr1With "," ( map fst params) ++ ")"
+    ++ " values(" ++ foldr1With "," ( map snd params ) ++ ")"
 
 updateSql :: String -> KVs -> KVs -> String
 updateSql name whereParams valueParams =
   sqlBase ++ setSql ++ whereSql whereParams
   where sqlBase = "update " ++ name
-        setSql = if (null valueParams)
+        setSql = if null valueParams
                  then ""
                  else " set " ++ foldr1With ", "
                         (map (\p -> fst p ++ "=?") valueParams)
@@ -146,7 +146,7 @@ deleteSql name whereParams =
 
 methodSql :: String -> KVs -> String
 methodSql name valueParams =
-  "exec " ++ name ++ " " ++ (foldr1With " " $ map snd valueParams)
+  "exec " ++ name ++ " " ++ foldr1With " " ( map snd valueParams)
 
 -- Helpers
 --

@@ -48,75 +48,97 @@ envFixtureGet = Env {
   , hackCache = []
 }
 
-readApa = MapperInputData .^.. (DataInput Read "monkey_business" "apa")
+readApa = MapperInputData ^.. (DataInput Read False "monkey_business" "apa")
+
+configApa = M.EnvParser ["monkey_business","tree"] ["eat_banana"] "_"
+
+envFixtureGetWith path query = 
+  M.envParser configApa envFixtureGet{
+    pathInfo=path
+    , hackInput=L.pack $ Codec.Binary.UTF8.String.encode query
+  }
 
 testEnvParserSlashApa =
   do let expected = readApa [] [("key1", "value1"), ("key2", "value2")]
-         actual = M.envParser envFixtureGet{pathInfo="/monkey_business/apa&key1=\"value1\"&key2=\"value2\""}
+         actual = envFixtureGetWith"/monkey_business/apa&key1=\"value1\"&key2=\"value2\"?" ""
      expected @=? actual
 
 testEnvParserSlashApaNoKeyValues =
   do let expected = readApa [] []
-         actual = M.envParser envFixtureGet{pathInfo="/monkey_business/apa"}
+         actual = envFixtureGetWith "/monkey_business/apa" ""
      expected @=? actual
 
 testEnvParserWithInput =
   do let expected = readApa [("key1","3&/%#"),("k_e4","()()??=")] []
-         actual = M.envParser envFixtureGet{pathInfo="/monkey_business/apa", queryString="key1=\"3&/%#\"&k_e4=\"()()??=\""}
+         actual = envFixtureGetWith "/monkey_business/apa" "key1=\"3&/%#\"&k_e4=\"()()??=\""
      expected @=? actual
 
 testEnvParserErrorInPath =
   do let expected = True -- MapperInputError "foo"
-         actual = M.envParser envFixtureGet{pathInfo="apa"}
+         actual = envFixtureGetWith "apa" ""
      expected @=? (isInputError $ actual)
 
 testEnvParserErrorInQuery =
   do let expected = True -- MapperInputError "foo"
-         actual = M.envParser envFixtureGet{pathInfo="/monkey_business/apa", queryString="47"}
+         actual = envFixtureGetWith "/monkey_business/apa" "47"
      expected @=? (isInputError $ actual)
 
 testEnvParserRoot =
-  do let expected = MapperInputEmpty
-         actual = M.envParser envFixtureGet{pathInfo="/"}
+  do let expected = MapperInputError "Parse error" 
+         actual = envFixtureGetWith "/" ""
      expected @=? actual
 
 testEnvParserEscaping =
-  do let expected = readApa [("nyckel", "cykel")] [("nyckel", "cykel")]
-         actual = M.envParser envFixtureGet{pathInfo="/monkey_business/apa&nyckel=%22cykel%22", queryString="nyckel=%22cykel%22"}
+  do let expected = readApa [("key", "bike")] [("nyckel", "cykel")] 
+         actual =
+          M.envParser configApa envFixtureGet{
+            pathInfo="/monkey_business/apa&nyckel=%22cykel%22", 
+            hackInput= L.pack $ Codec.Binary.UTF8.String.encode "key=\"bike\""}
      expected @=? actual
 
 testEnvParserPostData =
-  do let expected = readApa [("nyckel", "cykel")] [("nyckel", "cykel")]
+  do let expected = readApa [("key", "bike")] [("nyckel", "cykel")]
          actual = 
-          M.envParser envFixtureGet{
+          M.envParser configApa envFixtureGet{
             pathInfo="/monkey_business/apa&nyckel=%22cykel%22", 
-            hackInput= L.pack $ Codec.Binary.UTF8.String.encode "nyckel=\"cykel\""}
+            queryString="key=\"bike\""}
      expected @=? actual
 
+testEnvParserMeta =
+  do let expected = MapperInputData $ DataInput Read True "monkey_business" "apa" [("key","bike")] [("nyckel","cykel")]
+         actual =
+          M.envParser configApa envFixtureGet{
+            pathInfo="/_/monkey_business/apa&nyckel=%22cykel%22", 
+            hackInput= L.pack $ Codec.Binary.UTF8.String.encode "key=\"bike\""}
+     expected @=? actual
+
+testEnvParserFaultyNS =
+  do let expected = MapperInputError "Parse error"
+         actual = envFixtureGetWith "/apverksamhet/apa" ""
+     expected @=? actual
 
 isInputError (MapperInputError _) = True
 isInputError _ = False
 
-testPathParser =
-  do let expected = Just $ Just ("monkey_business", "apa", [("key1", "value1"), ("key2", "value2")])
-         actual = parser M.pathParser "/monkey_business/apa&key1=\"value1\"&key2=\"value2\""
-     expected @=? actual
+-- testPathParser =
+--   do let expected = MapperInputData $ DataInput Read False "monkey_business", "apa", [("key1", "value1"), ("key2", "value2")] []
+--          actual = envFixtureGetWith "/monkey_business/apa&key1=\"value1\"&key2=\"value2\"" ""
+--      expected @=? actual
 
 testPathParserForEmptyPath =
-  do let expected = Nothing
-         actual = parser M.pathParser ""
+  do let expected = MapperInputError "Parse error" 
+         actual = envFixtureGetWith "" ""
      expected @=? actual
 
 testQueryParser =
   do let expected = Just [("key1", "value1"), ("key2", "value2")]
-         actual = parser M.queryParser "key1=\"value1\"&key2=\"value2\""
+         actual = parser (M.queryParser configApa) "?key1=\"value1\"&key2=\"value2\""
      expected @=? actual
 
 testQueryParserForEmptyQuery =
   do let expected = Just []
-         actual = parser M.queryParser ""
+         actual = parser (M.queryParser configApa) "?"
      expected @=? actual
-
 
 testKeyValue =
   do let expected = Just ("key","value")

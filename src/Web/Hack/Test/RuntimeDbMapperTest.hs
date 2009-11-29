@@ -43,17 +43,17 @@ testSelectSqlEmpty =
      expected @=? actual
 
 testSelect =
-  do actual <- select' cs (DataInput Read "public" "int_int" [] [])
+  do actual <- select' cs (DataInput Read False "public" "int_int" [] [])
      let expected = MapperOutput [[("fst","11"), ("snd","22")]]
      expected @=? actual
 
 testSelectWithFilter =
-  do actual <- select' cs (DataInput {dataInputVerb = Read, dataInputNS = "public", dataInputName = "int_int", dataInputValue = [], dataInputFilter = [("fst","11")]})
+  do actual <- select' cs (dataInput {dataInputVerb = Read, dataInputNS = "public", dataInputName = "int_int", dataInputValue = [], dataInputFilter = [("fst","11")]})
      let expected = MapperOutput [[("fst","11"), ("snd","22")]]
      expected @=? actual
 
 testSelectWithNegativeFilter =
-  do actual <- select' cs (DataInput {dataInputVerb = Read, dataInputNS = "public", dataInputName = "int_int", dataInputValue = [], dataInputFilter = [("fst","12")]})
+  do actual <- select' cs (dataInput {dataInputVerb = Read, dataInputNS = "public", dataInputName = "int_int", dataInputValue = [], dataInputFilter = [("fst","12")]})
      let expected = MapperOutput []
      expected @=? actual
 
