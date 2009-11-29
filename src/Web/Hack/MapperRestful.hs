@@ -1,19 +1,17 @@
------------------------------------------------------------------------------
---
--- Module      :  Web.Hack.MapperRestful
--- Copyright   :  
--- License     :  BSD4
---
--- Maintainer  :  Oscar Finnsson, Emil Nordling
--- Stability   :  
--- Portability :  
---
--- | MapperRestful maps URL-strings to MapperInputs. 
---   Example: /resource_name&key="value"&key="value"?key="value"&key="value"/key&key
---   '/' symbol ('&' kv)* ('?' kv ('&' kv)*)? (¨'/' symbol ('&' symbol)*)?
---   kv = symbol '="' string '"'
------------------------------------------------------------------------------
+{-|
+   MapperRestful maps URL-strings to MapperInputs. 
 
+   Backus-Naur-form of the url:
+
+   > (meta '/')? namespace resource ('.' format)? ('&' key '="' value)* ('/?' key '="' value (key '="' value )*  )?
+
+   Example of valid URLs:
+
+   > /public/monkeys.xml/
+   > /_/public/monkeys
+   > /public/monkeys&age="9"
+   
+-}
 module Web.Hack.MapperRestful (
   EnvParser (..),
   envParser,
@@ -49,7 +47,7 @@ envParser :: EnvParser -> Hack.Env -> MapperInput
 envParser config env =
   case parsed' of
     Right v -> v
-    Left err -> MapperInputError "Parse error" -- $ foldr (++) "" $ map messageString $ errorMessages err
+    Left err -> MapperInputError "Parse error" 
   where parsed' = parse (envParser' config) "url" url
         url = (unEscapeString $ Hack.pathInfo env) ++ "?" ++
                 (decode $ L.unpack $ Hack.hackInput env) ++ (Hack.queryString env)
@@ -59,13 +57,16 @@ envParser' config = do
   meta' <- maybeMeta config
   namespace' <- namespaceParser config
   resource' <- resourceParser config
+  format' <- formatParser config
+  filter' <- filterParser config
   query' <- try $ queryParser config
   return $ MapperInputData $
     dataInput {
       dataInputMeta = meta',
+      dataInputFormat = format',
       dataInputNS = namespace',
-      dataInputName = fst resource',
-      dataInputFilter = snd resource',
+      dataInputName =  resource',
+      dataInputFilter =  filter',
       dataInputValue = query'
     }
 
@@ -88,13 +89,20 @@ namespaceParser config = do
         else fail ns
   isNs
 
-
-resourceParser :: EnvParser -> GenParser Char st (String,[(String,String)]) 
 resourceParser config = do
   char '/'
-  resourceName <- symbol
-  filters <- manyKeyValues
-  return $ (resourceName, filters)
+  symbol
+
+filterParser config = do
+  manyKeyValues
+
+formatParser :: EnvParser -> GenParser Char st String
+formatParser config = do
+  (try formatParser') <|> (return "")
+  where
+    formatParser' = do
+      char '.'
+      symbol
 
 queryParser :: EnvParser -> GenParser Char st [(String, String)]
 queryParser config = do

@@ -43,7 +43,7 @@ testSelectSqlEmpty =
      expected @=? actual
 
 testSelect =
-  do actual <- select' cs (DataInput Read False "public" "int_int" [] [])
+  do actual <- select' cs (DataInput Read False "xml" "public" "int_int" [] [])
      let expected = MapperOutput [[("fst","11"), ("snd","22")]]
      expected @=? actual
 

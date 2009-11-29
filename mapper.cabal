@@ -6,7 +6,7 @@ license: BSD4
 license-file: ""
 copyright:
 maintainer: Oscar Finnsson
-build-depends: base -any
+build-depends: base -any, hack, parsec, template-haskell, haskell98, utf8-string, bytestring, network, HDBC-postgresql, HDBC, containers
 stability:
 homepage:
 package-url:
@@ -20,7 +20,7 @@ data-files:
 data-dir: ""
 extra-source-files:
 extra-tmp-files:
-exposed-modules: Web.Hack.Mapper
+exposed-modules: Web.Hack.Mapper, Web.Hack.MapperRestful, Web.Hack.RuntimeDbMapper
 exposed: True
 buildable: True
 build-tools:

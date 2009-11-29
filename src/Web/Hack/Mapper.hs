@@ -27,6 +27,7 @@ data MapperInput =
 data DataInput = DataInput {
     dataInputVerb :: MapperVerb,
     dataInputMeta :: Bool,
+    dataInputFormat :: String,
     dataInputNS :: String, -- namespace
     dataInputName :: String, -- full name
     dataInputValue :: [(String,String)], -- key/value-pairs
@@ -34,7 +35,7 @@ data DataInput = DataInput {
   }
   deriving (Show, Eq)
 
-dataInput = DataInput Read False "" "" [] []
+dataInput = DataInput Read False "" "" "" [] []
 
 
 data MapperVerb =

@@ -48,7 +48,7 @@ envFixtureGet = Env {
   , hackCache = []
 }
 
-readApa = MapperInputData ^.. (DataInput Read False "monkey_business" "apa")
+readApa = MapperInputData ^.. (DataInput Read False "" "monkey_business" "apa")
 
 configApa = M.EnvParser ["monkey_business","tree"] ["eat_banana"] "_"
 
@@ -105,10 +105,18 @@ testEnvParserPostData =
      expected @=? actual
 
 testEnvParserMeta =
-  do let expected = MapperInputData $ DataInput Read True "monkey_business" "apa" [("key","bike")] [("nyckel","cykel")]
+  do let expected = MapperInputData $ DataInput Read True "" "monkey_business" "apa" [("key","bike")] [("nyckel","cykel")]
          actual =
           M.envParser configApa envFixtureGet{
             pathInfo="/_/monkey_business/apa&nyckel=%22cykel%22", 
+            hackInput= L.pack $ Codec.Binary.UTF8.String.encode "key=\"bike\""}
+     expected @=? actual
+
+testEnvParserFormatXml =
+  do let expected = MapperInputData $ DataInput Read True "xml" "monkey_business" "apa" [("key","bike")] [("nyckel","cykel")]
+         actual =
+          M.envParser configApa envFixtureGet{
+            pathInfo="/_/monkey_business/apa.xml&nyckel=%22cykel%22", 
             hackInput= L.pack $ Codec.Binary.UTF8.String.encode "key=\"bike\""}
      expected @=? actual
 
