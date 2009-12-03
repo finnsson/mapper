@@ -59,6 +59,7 @@ envParser' config = do
   resource' <- resourceParser config
   format' <- formatParser config
   filter' <- filterParser config
+  optionMaybe $ char '/'
   query' <- try $ queryParser config
   return $ MapperInputData $
     dataInput {

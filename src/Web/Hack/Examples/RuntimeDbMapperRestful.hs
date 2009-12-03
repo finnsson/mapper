@@ -1,11 +1,9 @@
-
 {-# OPTIONS_GHC -fglasgow-exts -XTemplateHaskell #-}
 --module Web.Hack.EnvTest where 
 
 import TestGenerator
 import Test.HUnit
 import Language.Haskell.TH
--- import Language.Haskell.Exts
 
 import Prelude hiding (log)
 
@@ -26,27 +24,12 @@ import qualified Web.Hack.MapperRestful as M
 import Web.Hack.Mapper
 import Web.Hack.RuntimeDbMapper
 
--- | Main will initialize some MVars, one for the log and one for a Handle
--- to the log. Then it will initialize the handle with the curried
--- application. I use the SimpleServer handler here, but you could use
--- whatever you want.
 main :: IO ()
 main = do
-        Handler.run 3001 app
+        Handler.run 3001 appGet
 
--- | Strictly turn a string into lines
--- FIXME: I would like this to be a pure function, but that doesn't work
--- for some reason. Any ideas anyone?
-strictLines :: String -> IO [String]
-strictLines s = length s `seq` return (lines s)
-
--- | Very simple application structure: any POST request adds another line
--- to the log. Every request (including a POST one) sends back the last
--- five message in the log.
-app :: Hack.Env -> IO Hack.Response
-app env
-    | Hack.requestMethod env == Hack.POST = appGet env
-    | otherwise = appGet env
+-- strictLines :: String -> IO [String]
+-- strictLines s = length s `seq` return (lines s)
 
 -- | Read in the log and format it in HTML.
 appGet :: Hack.Env -> IO Hack.Response
@@ -57,7 +40,9 @@ appGet env = do
         [("Content-Type", "text/plain; charset=utf-8")]
         $ BSLU.fromString $ (show dataInput) ++ "\n\r\n\r"
           ++ (show $ dbOutput) ++ "\n\n\n" ++ (show env)
-    where dataInput = getDataInput $ M.envParser env
+    where dataInput = getDataInput $ M.envParser config env
+
+config = M.EnvParser ["public"] ["func"] "_"
 
 getDataInput (MapperInputData v) = v
-getDataInput _ = DataInput Create "apa" "apa" [] []
+getDataInput _ = DataInput Create False "xml" "apa" "apa" [] []
