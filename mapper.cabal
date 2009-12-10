@@ -20,7 +20,7 @@ data-files:
 data-dir: ""
 extra-source-files:
 extra-tmp-files:
-exposed-modules: Web.Hack.Mapper, Web.Hack.MapperRestful, Web.Hack.RuntimeDbMapper
+exposed-modules: Web.Mapper.Mapper, Web.Mapper.MapperRestful, Web.Mapper.RuntimeDbMapper
 exposed: True
 buildable: True
 build-tools:
