@@ -1,6 +1,6 @@
-module Web.Hack.MapperSerializer where
+module Web.Mapper.MapperSerializer where
 
-import Web.Hack.Mapper
+import Web.Mapper.Mapper
 import Text.XML.Light
 
 serializeToXml :: MapperOutput -> String

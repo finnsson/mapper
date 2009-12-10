@@ -4,7 +4,7 @@
 
 
 -}
-module Web.Hack.Util where
+module Web.Mapper.Util where
 
 import Char
 import Data.Maybe

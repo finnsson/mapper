@@ -12,7 +12,7 @@
 --
 -----------------------------------------------------------------------------
 
-module Web.Hack.Mapper (
+module Web.Mapper.MapperJsonRpc (
 
 
 ) where

@@ -1,8 +1,8 @@
 {-# OPTIONS_GHC -fglasgow-exts -XTemplateHaskell #-}
-module Web.Hack.Test.MapperSerializerTest where
+module Web.Mapper.Test.MapperSerializerTest where
 
-import Web.Hack.MapperSerializer
-import Web.Hack.Mapper
+import Web.Mapper.MapperSerializer
+import Web.Mapper.Mapper
 
 import TestGenerator
 import Test.HUnit

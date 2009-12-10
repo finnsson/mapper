@@ -4,7 +4,7 @@
 
 
 -}
-module Web.Hack.MiscUtils where
+module Web.Mapper.MiscUtils where
 
 import Char
 import Data.Maybe

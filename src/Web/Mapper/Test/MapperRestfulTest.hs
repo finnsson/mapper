@@ -1,18 +1,18 @@
 
 {-# OPTIONS_GHC -fglasgow-exts -XTemplateHaskell #-}
-module Web.Hack.Test.MapperRestfulTest where 
+module Web.Mapper.Test.MapperRestfulTest where 
 
 import Hack
-import Web.Hack.Mapper
-import qualified Web.Hack.MapperRestful as M
+import Web.Mapper.Mapper
+import qualified Web.Mapper.MapperRestful as M
 import qualified Data.ByteString.Lazy as L
 import System.IO
 import Text.ParserCombinators.Parsec
 import Codec.Binary.UTF8.String (encode)
 
 import TestGenerator
-import Web.Hack.MiscUtils
-import Web.Hack.Util
+import Web.Mapper.MiscUtils
+import Web.Mapper.Util
 
 import Test.HUnit
 import Test.Framework (defaultMain)

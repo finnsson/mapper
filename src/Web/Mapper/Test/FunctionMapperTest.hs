@@ -1,9 +1,9 @@
 
 {-# OPTIONS_GHC -fglasgow-exts -XTemplateHaskell -XNoMonomorphismRestriction #-}
-module Web.Hack.FunctionMapperTest where 
+module Web.Mapper.FunctionMapperTest where 
 
-import Web.Hack.Mapper
-import Web.Hack.FunctionMapper
+import Web.Mapper.Mapper
+import Web.Mapper.FunctionMapper
 
 import TestGenerator
 

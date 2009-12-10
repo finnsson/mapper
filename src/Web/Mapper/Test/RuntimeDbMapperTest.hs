@@ -1,5 +1,5 @@
 {-# OPTIONS_GHC -fglasgow-exts -XTemplateHaskell #-}
-module Web.Hack.Test.RuntimeDbMapperTest where
+module Web.Mapper.Test.RuntimeDbMapperTest where
 
 import Test.Framework (defaultMain, testGroup)
 import Test.Framework.Providers.HUnit
@@ -15,9 +15,9 @@ import Language.Haskell.TH.Syntax
 import qualified Control.Exception as E
 
 import TestGenerator
-import Web.Hack.RuntimeDbMapper
-import Web.Hack.Mapper
-import Web.Hack.Util
+import Web.Mapper.RuntimeDbMapper
+import Web.Mapper.Mapper
+import Web.Mapper.Util
 
 main = defaultMain [runtimeDbMapperTests] 
 

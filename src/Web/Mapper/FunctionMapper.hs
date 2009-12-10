@@ -12,7 +12,7 @@
 --
 -----------------------------------------------------------------------------
 {-# OPTIONS_GHC -fglasgow-exts -XTemplateHaskell #-}
-module Web.Hack.FunctionMapper (
+module Web.Mapper.FunctionMapper (
   functionMapper,
   FunctionMapper (..),
   parsedModule,
@@ -21,7 +21,7 @@ module Web.Hack.FunctionMapper (
 
 -- check out http://www.haskell.org/haskellwiki/GHC/As_a_library_(up_to_6.8)#Interactive_evaluation
 
-import Web.Hack.Mapper
+import Web.Mapper.Mapper
 
 import Language.Haskell.TH
 import Language.Haskell.Exts -- .Parser

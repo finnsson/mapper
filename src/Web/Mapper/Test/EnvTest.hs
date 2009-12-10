@@ -1,6 +1,6 @@
 
 {-# OPTIONS_GHC -fglasgow-exts -XTemplateHaskell #-}
---module Web.Hack.EnvTest where 
+module Web.Mapper.EnvTest where 
 
 import TestGenerator
 import Test.HUnit
@@ -9,7 +9,7 @@ import Language.Haskell.TH
 
 import Prelude hiding (log)
 
-import qualified Hack 
+import qualified Hack
 import qualified Hack.Handler.SimpleServer as Handler
 import Web.Encodings (encodeHtml, parsePost)
 
@@ -20,8 +20,6 @@ import System.Directory (doesFileExist)
 import qualified System.IO.UTF8 as U
 import System.IO (withBinaryFile, IOMode (AppendMode), Handle)
 import qualified Data.ByteString.Lazy.UTF8 as BSLU
-import qualified Web.Hack.MapperRestful as M
-import Text.ParserCombinators.Parsec
 
 -- | Main will initialize some MVars, one for the log and one for a Handle
 -- to the log. Then it will initialize the handle with the curried
@@ -51,4 +49,4 @@ appGet env = do
     return $ Hack.Response
         200
         [("Content-Type", "text/html; charset=utf-8")]
-        $ BSLU.fromString $ (show $ M.envParser env) ++ "\n\n\n" ++ (show env)
+        $ BSLU.fromString $ show env

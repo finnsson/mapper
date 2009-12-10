@@ -1,5 +1,5 @@
 {-# OPTIONS_GHC -fglasgow-exts -XTemplateHaskell #-}
---module Web.Hack.EnvTest where 
+module Web.Mapper.EnvTest where 
 
 import TestGenerator
 import Test.HUnit
@@ -20,9 +20,9 @@ import System.IO (withBinaryFile, IOMode (AppendMode), Handle)
 import qualified Data.ByteString.Lazy.UTF8 as BSLU
 import Text.ParserCombinators.Parsec
 
-import qualified Web.Hack.MapperRestful as M
-import Web.Hack.Mapper
-import Web.Hack.RuntimeDbMapper
+import qualified Web.Mapper.MapperRestful as M
+import Web.Mapper.Mapper
+import Web.Mapper.RuntimeDbMapper
 
 main :: IO ()
 main = do

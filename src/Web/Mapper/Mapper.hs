@@ -12,7 +12,7 @@
 --
 -----------------------------------------------------------------------------
 {-# OPTIONS_GHC -fglasgow-exts -XExistentialQuantification #-}
-module Web.Hack.Mapper where 
+module Web.Mapper.Mapper where 
 
 import Data.Generics
 import Hack

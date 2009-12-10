@@ -1,6 +1,6 @@
 -----------------------------------------------------------------------------
 --
--- Module      :  Web.Hack.Mapper
+-- Module      :  Web.Mapper.RuntimeDbMapper
 -- Copyright   :  
 -- License     :  BSD4
 --
@@ -12,7 +12,7 @@
 --
 -----------------------------------------------------------------------------
 
-module Web.Hack.RuntimeDbMapper (
+module Web.Mapper.RuntimeDbMapper (
   RuntimeViewMapper (..),
   select',
   insert',
@@ -27,9 +27,9 @@ module Web.Hack.RuntimeDbMapper (
   getViewMap
 ) where
 
-import Web.Hack.MiscUtils
-import Web.Hack.Mapper
-import Web.Hack.Util
+import Web.Mapper.MiscUtils
+import Web.Mapper.Mapper
+import Web.Mapper.Util
 
 import Database.HDBC
 import Database.HDBC.PostgreSQL

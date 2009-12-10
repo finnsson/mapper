@@ -12,7 +12,7 @@
    > /public/monkeys&age="9"
    
 -}
-module Web.Hack.MapperRestful (
+module Web.Mapper.MapperRestful (
   EnvParser (..),
   envParser,
   queryParser,
@@ -22,14 +22,14 @@ module Web.Hack.MapperRestful (
 ) where
 
 import Text.ParserCombinators.Parsec
-import Web.Hack.Mapper
+import Web.Mapper.Mapper
 import Data.Char
 import qualified Hack
 import Maybe
 import Network.URI (unEscapeString)
 import qualified Data.ByteString.Lazy as L
 import Codec.Binary.UTF8.String (decode)
-import Web.Hack.Util
+import Web.Mapper.Util
 import Text.ParserCombinators.Parsec.Error
 
 instance MapperInputter EnvParser where  
