@@ -29,8 +29,9 @@ import Maybe
 import Network.URI (unEscapeString)
 import qualified Data.ByteString.Lazy as L
 import Codec.Binary.UTF8.String (decode)
-import Web.Mapper.Util
 import Text.ParserCombinators.Parsec.Error
+
+import Utilities.Misc
 
 instance MapperInputter EnvParser where  
   getMapperInput = envParser

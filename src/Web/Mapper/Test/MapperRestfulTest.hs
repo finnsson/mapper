@@ -11,8 +11,8 @@ import Text.ParserCombinators.Parsec
 import Codec.Binary.UTF8.String (encode)
 
 import TestGenerator
-import Web.Mapper.MiscUtils
-import Web.Mapper.Util
+import Utilities.Misc
+import Utilities.HDBC
 
 import Test.HUnit
 import Test.Framework (defaultMain)
