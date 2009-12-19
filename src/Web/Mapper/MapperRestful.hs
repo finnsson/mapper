@@ -48,10 +48,10 @@ envParser :: EnvParser -> Hack.Env -> MapperInput
 envParser config env =
   case parsed' of
     Right v -> v
-    Left err -> MapperInputError "Parse error" 
+    Left err -> MapperInputError $ "Parse error" 
   where parsed' = parse (envParser' config) "url" url
         url = (unEscapeString $ Hack.pathInfo env) ++ "?" ++
-                (decode $ L.unpack $ Hack.hackInput env) ++ (Hack.queryString env)
+                (decode $ L.unpack $ Hack.hackInput env) ++ (unEscapeString $ Hack.queryString env)
 
 
 envParser' config = do
