@@ -1,1 +1,0 @@
-pg_restore -Utest -d RuntimeDbMapperTest DbCallTest.dump 
