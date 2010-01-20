@@ -17,8 +17,7 @@ module Web.Mapper.MapperRestful (
   envParser,
   queryParser,
   keyValue,
-  manyKeyValues,
-  andKeyValue
+  manyKeyValues
 ) where
 
 import Text.ParserCombinators.Parsec
@@ -47,7 +46,7 @@ data EnvParser =
 envParser :: EnvParser -> Hack.Env -> MapperInput
 envParser config env =
   case parsed' of
-    Right v -> v
+    Right v -> MapperInputData v { dataInputVerb = fromEnvVerb $ Hack.requestMethod env }
     Left err -> MapperInputError $ "Parse error" 
   where parsed' = parse (envParser' config) "url" url
         url = (unEscapeString $ Hack.pathInfo env) ++ "?" ++
@@ -57,12 +56,12 @@ envParser config env =
 envParser' config = do
   meta' <- maybeMeta config
   namespace' <- namespaceParser config
-  resource' <- resourceParser config
+  resource' <- (try $ char '/' >> symbol ) <|> (return "")
   format' <- formatParser config
   filter' <- filterParser config
   optionMaybe $ char '/'
   query' <- try $ queryParser config
-  return $ MapperInputData $
+  return $
     dataInput {
       dataInputMeta = meta',
       dataInputFormat = format',
@@ -91,20 +90,12 @@ namespaceParser config = do
         else fail ns
   isNs
 
-resourceParser config = do
-  char '/'
-  symbol
-
 filterParser config = do
   manyKeyValues
 
 formatParser :: EnvParser -> GenParser Char st String
 formatParser config = do
-  (try formatParser') <|> (return "")
-  where
-    formatParser' = do
-      char '.'
-      symbol
+  (try (char '.' >> symbol)) <|> (return "")
 
 queryParser :: EnvParser -> GenParser Char st [(String, String)]
 queryParser config = do
@@ -121,24 +112,15 @@ queryParser config = do
       return $ first : rest
 
 manyKeyValues :: GenParser Char st [(String,String)]
-manyKeyValues = many andKeyValue
+manyKeyValues = many ( char '&' >> keyValue) -- andKeyValue
   
-andKeyValue :: GenParser Char st (String,String)
-andKeyValue = do
-  char '&'
-  keyValue
-  
--- Matches &key="value"
 keyValue :: GenParser Char st (String,String)
 keyValue = do
   key <- symbol
   string "=\""
-  value <- valueParser
+  value <- many1 (satisfy (/= '"')) -- valueParser
   char '"'
   return (key,value)
-  where
-    valueParser :: CharParser st String
-    valueParser = many1 (satisfy (/= '"'))
   
 symbol :: CharParser st String
 symbol = many1 ( satisfy (isAlphaNum ||* (== '_')) )

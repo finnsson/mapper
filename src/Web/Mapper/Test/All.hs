@@ -4,5 +4,6 @@ import Test.Framework (defaultMain)
 
 -- Modules to test
 import Web.Mapper.Test.MapperRestfulTest (mapperRestfulTests)
+import Web.Mapper.Test.MapperSerializerTest (mapperSerializerTest)
 
-main = defaultMain [mapperRestfulTests]
+main = defaultMain [mapperRestfulTests, mapperSerializerTest]

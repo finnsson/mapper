@@ -8,9 +8,9 @@ import TestGenerator
 import Test.HUnit
 import Test.Framework (defaultMain)
 
-main = defaultMain [mapperSerializerTests]
+main = defaultMain [mapperSerializerTest]
 
-mapperSerializerTests = $testGroupGenerator
+mapperSerializerTest = $testGroupGenerator
 
 testMapperSerializer = do
   let mapperOutput = MapperOutput [[("key","value")]]

@@ -46,7 +46,10 @@ envFixtureGet = Env {
   , hackErrors = putStrLn
   , hackHeaders = []
   , hackCache = []
+  , remoteHost = "some host"
 }
+
+envFixturePost = envFixtureGet { requestMethod = POST }
 
 readApa = MapperInputData ^.. (DataInput Read False "" "monkey_business" "apa")
 
@@ -62,6 +65,11 @@ testEnvParserSlashApa =
   do let expected = readApa [] [("key1", "value1"), ("key2", "value2")]
          actual = envFixtureGetWith"/monkey_business/apa&key1=\"value1\"&key2=\"value2\"?" ""
      expected @=? actual
+
+-- testEnvParserNsMeta =
+--  do let expected = MapperInputData $ DataInput Read True "" "public" ""
+--         actual = envFixtureGetWith "/_/public" ""
+--     expected @=? actual
 
 testEnvParserSlashApaNoKeyValues =
   do let expected = readApa [] []
@@ -125,6 +133,21 @@ testEnvParserFaultyNS =
          actual = envFixtureGetWith "/apverksamhet/apa" ""
      expected @=? actual
 
+testEnvParserOnlyNS =
+  do let expected = MapperInputData $ DataInput Read False "" "monkey_business" "" [] []
+         actual = M.envParser configApa envFixtureGet{
+          pathInfo="/monkey_business"
+          }
+     expected @=? actual
+
+testEnvParserOnlyPostNS =
+  do let expected = MapperInputData $ DataInput Create True "" "monkey_business" "" [] []
+         actual = M.envParser configApa envFixturePost{
+          pathInfo="/_/monkey_business"
+          }
+     expected @=? actual
+
+
 isInputError (MapperInputError _) = True
 isInputError _ = False
 
@@ -153,10 +176,10 @@ testKeyValue =
          actual = parser M.keyValue "key=\"value\""
      expected @=? actual
      
-testAndKeyValue =
-  do let expected = Just ("key","value")
-         actual = parser M.andKeyValue "&key=\"value\""
-     expected @=? actual
+-- testAndKeyValue =
+--   do let expected = Just ("key","value")
+--          actual = parser M.andKeyValue "&key=\"value\""
+--      expected @=? actual
      
 testFilter =
   do let expected = Just [("key1","value1")]

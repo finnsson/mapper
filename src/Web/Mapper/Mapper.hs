@@ -35,6 +35,7 @@ data DataInput = DataInput {
   }
   deriving (Show, Eq)
 
+dataInput :: DataInput
 dataInput = DataInput Read False "" "" "" [] []
 
 
@@ -46,8 +47,36 @@ data MapperVerb =
 data MapperOutput =
   MapperOutput { mapperOutputData :: [[(String,String)]] } -- DataBox }
   | MapperOutputError { mapperOutputErrorMessage :: String }
+  | MapperOutputMeta { mapperOutputMetaInfo :: MetaInfo }
   deriving (Show, Eq)
  
+-- Meta
+
+data MetaInfo = MetaInfo [TypeInfo] [FuncInfo]
+  deriving (Show,Eq)
+
+data FuncInfo = ProcInfo {
+                  procInfoReturnType::TypeInfo,
+                  procInfoName::String,
+                  procInfoNS::String,
+                  procInfoArguments::[(String,TypeInfo)],
+                  procInfoComment::Maybe String
+                }
+  deriving (Show,Eq)
+
+data TypeInfo =
+     TableInfo String String [ColumnInfo] [(PrivilegeType, Bool)] 
+     | PrimInfo String String
+ deriving (Show,Eq)
+
+data PrivilegeType = InsertPrivilege | UpdatePrivilege | SelectPrivilege | DeletePrivilege
+  deriving (Show,Eq)
+
+data ColumnInfo = ColumnInfo String TypeInfo
+   deriving (Show,Eq)
+
+-- end Meta
+
 data DataBox = forall d. (Data d, Show d, Eq d) => DataBox d
  -- deriving (Show,Eq)
 
