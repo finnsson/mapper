@@ -25,6 +25,7 @@ import Web.Mapper.Mapper
 import Data.Char
 import qualified Hack
 import Maybe
+import List
 import Network.URI (unEscapeString)
 import qualified Data.ByteString.Lazy as L
 import Codec.Binary.UTF8.String (decode)
@@ -46,14 +47,14 @@ data EnvParser =
 envParser :: EnvParser -> Hack.Env -> MapperInput
 envParser config env =
   case parsed' of
-    Right v -> MapperInputData v { dataInputVerb = fromEnvVerb $ Hack.requestMethod env }
+    Right v -> MapperInputData v -- { dataInputVerb = fromEnvVerb $ Hack.requestMethod env }
     Left err -> MapperInputError $ "Parse error" 
-  where parsed' = parse (envParser' config) "url" url
+  where parsed' = parse (envParser' config env) "url" url
         url = (unEscapeString $ Hack.pathInfo env) ++ "?" ++
                 (decode $ L.unpack $ Hack.hackInput env) ++ (unEscapeString $ Hack.queryString env)
 
 
-envParser' config = do
+envParser' config env = do
   meta' <- maybeMeta config
   namespace' <- namespaceParser config
   resource' <- (try $ char '/' >> symbol ) <|> (return "")
@@ -61,6 +62,16 @@ envParser' config = do
   filter' <- filterParser config
   optionMaybe $ char '/'
   query' <- try $ queryParser config
+  let _method_ = find (\i-> (fst i) == "__method__") query'
+      verb = 
+        if isJust _method_
+        then case (snd $ fromJust _method_) of
+          "get" -> Read
+          "post" -> Create
+          "put" -> Update
+          "delete" -> Delete
+          otherwise -> Read
+        else fromEnvVerb $ Hack.requestMethod env
   return $
     dataInput {
       dataInputMeta = meta',
@@ -68,7 +79,8 @@ envParser' config = do
       dataInputNS = namespace',
       dataInputName =  resource',
       dataInputFilter =  filter',
-      dataInputValue = query'
+      dataInputValue = query',
+      dataInputVerb = verb
     }
 
 maybeMeta ::EnvParser -> GenParser Char st Bool 
