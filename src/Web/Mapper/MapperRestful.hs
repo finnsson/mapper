@@ -13,7 +13,7 @@
    
 -}
 module Web.Mapper.MapperRestful (
-  EnvParser (..),
+  RestfulParser (..),
   envParser,
   queryParser,
   keyValue,
@@ -30,21 +30,22 @@ import Network.URI (unEscapeString)
 import qualified Data.ByteString.Lazy as L
 import Codec.Binary.UTF8.String (decode)
 import Text.ParserCombinators.Parsec.Error
+import Char
 
 import Utilities.Misc
 
-instance MapperInputter EnvParser where  
+instance MapperInputter RestfulParser where  
   getMapperInput = envParser
 
-data EnvParser =
-  EnvParser {
+data RestfulParser =
+  RestfulParser {
     viewNSs :: [String],
     functionNSs :: [String],
     metaSymbol :: String
   }
 
 
-envParser :: EnvParser -> Hack.Env -> MapperInput
+envParser :: RestfulParser -> Hack.Env -> MapperInput
 envParser config env =
   case parsed' of
     Right v -> MapperInputData v -- { dataInputVerb = fromEnvVerb $ Hack.requestMethod env }
@@ -63,9 +64,10 @@ envParser' config env = do
   optionMaybe $ char '/'
   query' <- try $ queryParser config
   let _method_ = find (\i-> (fst i) == "__method__") query'
+      query'' = filter (\i-> (fst i) /= "__method__") query'
       verb = 
         if isJust _method_
-        then case (snd $ fromJust _method_) of
+        then case (map toLower $ snd $ fromJust _method_) of
           "get" -> Read
           "post" -> Create
           "put" -> Update
@@ -79,11 +81,11 @@ envParser' config env = do
       dataInputNS = namespace',
       dataInputName =  resource',
       dataInputFilter =  filter',
-      dataInputValue = query',
+      dataInputValue = query'',
       dataInputVerb = verb
     }
 
-maybeMeta ::EnvParser -> GenParser Char st Bool 
+maybeMeta ::RestfulParser -> GenParser Char st Bool 
 maybeMeta config =
   try (metaParse config) <|> (return $ False)
 
@@ -92,7 +94,7 @@ metaParse config = do
   return $ True 
 
 
-namespaceParser :: EnvParser -> GenParser Char st String
+namespaceParser :: RestfulParser -> GenParser Char st String
 namespaceParser config = do
   char '/'
   ns <- symbol <?> "namespace"
@@ -105,18 +107,17 @@ namespaceParser config = do
 filterParser config = do
   manyKeyValues
 
-formatParser :: EnvParser -> GenParser Char st String
+formatParser :: RestfulParser -> GenParser Char st String
 formatParser config = do
   (try (char '.' >> symbol)) <|> (return "")
 
-queryParser :: EnvParser -> GenParser Char st [(String, String)]
+queryParser :: RestfulParser -> GenParser Char st [(String, String)]
 queryParser config = do
   char '?'
   values <- optionMaybe valuesParser'
   return $ stripMaybe values 
   where
-    stripMaybe (Just a) = a
-    stripMaybe Nothing = []
+    stripMaybe= maybe [] id -- (Just a) = a
 
     valuesParser' = do 
       first <- keyValue

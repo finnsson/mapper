@@ -1,4 +1,4 @@
-name: mapper
+name: Web-Mapper
 version: 0.1.0
 cabal-version: -any
 build-type: Simple
@@ -6,13 +6,23 @@ license: BSD4
 license-file: ""
 copyright:
 maintainer: Oscar Finnsson
-build-depends: base -any, hack, parsec, template-haskell, haskell98, utf8-string, bytestring, network, HDBC-postgresql, HDBC, containers, Utilities >= 0.1.0, xml >= 1.3.4, json >= 0.4.3
+build-depends: base >= 4.2, hack, parsec, template-haskell, haskell98, utf8-string, bytestring, network, HDBC-postgresql, HDBC, containers, Utilities >= 0.1.0, xml >= 1.3.4, json >= 0.4.3, syb >= 0.1.0.2
 stability:
-homepage:
+homepage: http://github.com/finnsson/mapper
 package-url:
 bug-reports:
-synopsis:
-description: Map data to/from hack-webserver to haskell-functions or db-layer.
+synopsis: Map data to/from hack-webserver using RESTful och RPC to haskell-functions or db-layer returning XML or JSON.
+description:
+   @Web-Mapper@ is a web service layer consisting or three important parts:
+   .
+   @MapperInputter@ is a type class that takes a @Hack.Env@ and returns a @MapperInput@.
+   Example of @MapperInputter@ is @RestfulParser@.
+   Is the @MapperInput@ is OK its @DataInput@ is passed on to a @MapperOutputter@.
+   .
+   @MapperOutputter@ is a type class that takes a @DataInput@ and returns a @MapperOutput@.
+   Example of @MapperOutputter@ is @RuntimeDbMapper@ found in the package @Web-Mapper-Db@.
+   .
+   Finally you got the functions @serializeToXml@ and @serializeToJson@ that can serialize a @MapperOutput@.
 category:
 author: Oscar Finnsson
 tested-with:

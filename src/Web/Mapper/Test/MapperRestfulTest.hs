@@ -53,7 +53,7 @@ envFixturePost = envFixtureGet { requestMethod = POST }
 
 readApa = MapperInputData ^.. (DataInput Read False "" "monkey_business" "apa")
 
-configApa = M.EnvParser ["monkey_business","tree"] ["eat_banana"] "_"
+configApa = M.RestfulParser ["monkey_business","tree"] ["eat_banana"] "_"
 
 envFixtureGetWith path query = 
   M.envParser configApa envFixtureGet{
